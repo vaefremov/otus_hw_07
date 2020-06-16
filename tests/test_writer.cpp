@@ -3,16 +3,7 @@
 
 #include "writer.h"
 
-TEST(writer, state_change)
-{
-    std::stringstream ss;
-    size_t block_sz = 2;
-    OTUS::OstreamWriter w1("w1", ss, block_sz);
-    OTUS::Event ev_c{OTUS::EventType::COMMAND, "c1"};
-    auto res = w1.update_state(OTUS::EventType::COMMAND);
-    ASSERT_FALSE(res);
-}
-
+// 
 TEST(writer, update)
 {
     std::stringstream ss;
