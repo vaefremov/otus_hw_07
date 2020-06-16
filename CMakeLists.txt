@@ -17,30 +17,51 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
+add_library(utilities src/command_reader.cpp)
+target_include_directories(utilities
+    PRIVATE 
+    "include"
+)
+
 
 add_executable(${CMAKE_PROJECT_NAME} src/main.cpp)
 target_include_directories(${CMAKE_PROJECT_NAME}
     PRIVATE 
     "include"
 )
+target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE utilities)
 
-# add_executable(test_matrix tests/test_matrix.cpp)
-# target_include_directories(test_matrix
-#     PRIVATE 
-#     "include"
-#     "src"
-#     "${CMAKE_BINARY_DIR}" "${CMAKE_HOME_DIRECTORY}"
-#     "${GTEST_INCLUDE_DIR}"
-# )
-# target_link_libraries(test_matrix
-#     ${GTEST_LIBRARIES}
-#     ${GTEST_MAIN_LIBRARIES}
-#     ${CMAKE_THREAD_LIBS_INIT}
-# )
+add_executable(test_writer tests/test_writer.cpp)
+target_include_directories(test_writer
+    PRIVATE 
+    "${CMAKE_HOME_DIRECTORY}/include"
+    "${GTEST_INCLUDE_DIR}"
+)
+target_link_libraries(test_writer
+    PRIVATE
+    utilities
+    ${GTEST_LIBRARIES}
+    ${GTEST_MAIN_LIBRARIES}
+    ${CMAKE_THREAD_LIBS_INIT}
+)
+
+add_executable(test_reader tests/test_reader.cpp)
+target_include_directories(test_reader
+    PRIVATE 
+    "${CMAKE_HOME_DIRECTORY}/include"
+    "${GTEST_INCLUDE_DIR}"
+)
+target_link_libraries(test_reader
+    PRIVATE
+    utilities
+    ${GTEST_LIBRARIES}
+    ${GTEST_MAIN_LIBRARIES}
+    ${CMAKE_THREAD_LIBS_INIT}
+)
 
 
 enable_testing()
-# add_test(test_matrix bin/test_matrix)
+add_test(test_writer bin/test_writer)
 
 install(TARGETS ${CMAKE_PROJECT_NAME} RUNTIME DESTINATION bin)
 
