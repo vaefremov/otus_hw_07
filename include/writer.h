@@ -42,7 +42,7 @@ class AbstractExecutor: public IObserver
             }
             m_commands.emplace(ev.m_payload);
         }
-        if(update_state(ev.m_type))
+        if(is_execution_needed(ev.m_type))
         {
             execute();
             m_block_start_tm = 0;
@@ -50,7 +50,7 @@ class AbstractExecutor: public IObserver
     }
     protected:
     virtual void execute() = 0;
-    virtual bool update_state(EventType t)
+    virtual bool is_execution_needed(EventType t)
     {
         switch (t)
         {
