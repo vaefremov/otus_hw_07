@@ -28,8 +28,8 @@ class AbstractExecutor: public IObserver
     AbstractExecutor(std::string const& name, size_t block_sz): m_name{name}, m_block_sz{block_sz},
     m_timing{[](){return std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();}} {}
     /**
-     * This constructor was added added in order to have possibility to use a custom timer function that generates
-     * timestamps. These timestamps may be used to generate file names in the descending classes.
+     * This constructor was added added in order to have the possibility to use a custom timer function that generates
+     * timestamps. These may be useful (e.g.) in tests to generate predictable file names.
      */
     AbstractExecutor(std::string const& name, size_t block_sz, TimingFn tm): m_name{name}, m_block_sz{block_sz}, m_timing{std::move(tm)}{}
     virtual void update(Event const& ev) override
