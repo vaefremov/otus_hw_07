@@ -62,6 +62,7 @@ target_link_libraries(test_reader
 
 enable_testing()
 add_test(test_writer bin/test_writer)
+add_test(test_reader bin/test_reader)
 
 install(TARGETS ${CMAKE_PROJECT_NAME} RUNTIME DESTINATION bin)
 
