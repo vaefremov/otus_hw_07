@@ -83,7 +83,7 @@ class AbstractExecutor: public IObserver
 class OstreamWriter: public AbstractExecutor 
 {
     public:
-    static std::shared_ptr<OstreamWriter> create(std::string const& name, std::ostream& out, size_t block_sz, OTUS::CommandReader& reader)
+    static std::shared_ptr<OstreamWriter> create_subscriber(std::string const& name, std::ostream& out, size_t block_sz, OTUS::CommandReader& reader)
     {
         auto ptr = std::make_shared<OstreamWriter>(name, out, block_sz);
         reader.subscribe(ptr);
@@ -93,12 +93,6 @@ class OstreamWriter: public AbstractExecutor
     OstreamWriter(OstreamWriter const&) = delete;
     OstreamWriter& operator=(OstreamWriter const&) = delete;
     OstreamWriter(std::string const& name, std::ostream& out, size_t block_sz): AbstractExecutor(name, block_sz), m_out(out) {}
-
-
-    std::string make_log_file_name()
-    {
-        return "bulk" + std::to_string(m_block_start_tm) + ".log";
-    }
 
     private:
 
@@ -124,7 +118,7 @@ class OstreamWriter: public AbstractExecutor
 class FilesWriter: public AbstractExecutor
 {
     public:
-    static std::shared_ptr<FilesWriter> create(std::string const& name, size_t block_sz, OTUS::CommandReader& reader)
+    static std::shared_ptr<FilesWriter> create_subscriber(std::string const& name, size_t block_sz, OTUS::CommandReader& reader)
     {
         auto ptr = std::make_shared<FilesWriter>(name, block_sz);
         reader.subscribe(ptr);
