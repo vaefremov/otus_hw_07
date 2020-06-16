@@ -7,6 +7,7 @@
 #include <exception>
 #include <chrono>
 #include <fstream>
+#include <functional>
 
 #include "iobserver.h"
 #include "command_reader.h"
@@ -17,20 +18,27 @@ namespace OTUS
 class AbstractExecutor: public IObserver
 {
     public:
+    
+    using TimingFn = std::function<long long()>;
+
     AbstractExecutor() = delete;
     AbstractExecutor(AbstractExecutor const&) = delete;
     AbstractExecutor& operator=(AbstractExecutor const&) = delete;
     virtual ~AbstractExecutor() = default;
-    AbstractExecutor(std::string const& name, size_t block_sz): m_name{name}, m_block_sz{block_sz} {}
-
+    AbstractExecutor(std::string const& name, size_t block_sz): m_name{name}, m_block_sz{block_sz},
+    m_timing{[](){return std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();}} {}
+    /**
+     * This constructor was added added in order to have possibility to use a custom timer function that generates
+     * timestamps. These timestamps may be used to generate file names in the descending classes.
+     */
+    AbstractExecutor(std::string const& name, size_t block_sz, TimingFn tm): m_name{name}, m_block_sz{block_sz}, m_timing{std::move(tm)}{}
     virtual void update(Event const& ev) override
     {
-        std::cerr << m_name << event_type_name(ev.m_type) << ev.m_payload << std::endl;
         if(ev.m_type == EventType::COMMAND)
         {
             if(!m_block_start_tm)
             {
-                m_block_start_tm = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+                m_block_start_tm = m_timing();
             }
             m_commands.emplace(ev.m_payload);
         }
@@ -49,7 +57,7 @@ class AbstractExecutor: public IObserver
         case EventType::BLOCK_START:
             return !(m_nesting_level++);
         case EventType::BLOCK_END:
-            if(m_nesting_level == 0) // Error in input stream!
+            if(m_nesting_level == 0) 
             {
                 throw std::runtime_error("Unexpected end of block");
             }
@@ -69,6 +77,7 @@ class AbstractExecutor: public IObserver
     std::queue<std::string> m_commands;
     size_t m_nesting_level = 0;
     long long m_block_start_tm = 0;
+    TimingFn m_timing;
 };
 
 class OstreamWriter: public AbstractExecutor 
@@ -125,6 +134,11 @@ class FilesWriter: public AbstractExecutor
     FilesWriter(FilesWriter const&) = delete;
     FilesWriter& operator=(FilesWriter const&) = delete;
     FilesWriter(std::string const& name, size_t block_sz): AbstractExecutor(name, block_sz) {}
+    /**
+     * This constructor is used primarilly for testing purposes in order to obtain reproducible
+     * log output file names.
+     */
+    FilesWriter(std::string const& name, size_t block_sz, AbstractExecutor::TimingFn tm): AbstractExecutor(name, block_sz, tm) {}
 
 
     void execute() override
