@@ -39,6 +39,7 @@ int main(int argc, const char** argv) {
     int block_sz = cli_int_arg(argc, argv);
     OTUS::CommandReader reader(std::cin);
     auto w1 = OTUS::OstreamWriter::create("cout1", std::cout, block_sz, reader);
+    auto wf = OTUS::FilesWriter::create("file", block_sz, reader);
     reader.run();
     return EXIT_SUCCESS;
 }
