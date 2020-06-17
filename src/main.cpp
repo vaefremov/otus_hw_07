@@ -15,16 +15,12 @@ static void usage()
 static int cli_int_arg(int argc, const char** argv)
 {
     if(argc < 2)
-    {
         usage();
-    }
     try
     {
         int block_sz = std::stoi(argv[1]);
         if(block_sz < 1)
-        {
             usage();
-        }
         return block_sz;
     }
     catch(const std::exception& e)
