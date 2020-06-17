@@ -20,6 +20,7 @@ class AbstractExecutor: public IObserver
     public:
     
     using TimingFn = std::function<long long()>;
+    using BatchType = std::vector<std::string>;
 
     AbstractExecutor() = delete;
     AbstractExecutor(AbstractExecutor const&) = delete;
@@ -44,12 +45,14 @@ class AbstractExecutor: public IObserver
         }
         if(is_execution_needed(ev.m_type))
         {
-            execute();
+            auto batch = prepare_batch();
+            if(!batch.empty())
+                execute(batch);
             m_block_start_tm = 0;
         }
     }
     protected:
-    virtual void execute() = 0;
+    virtual void execute(BatchType const& batch) = 0;
     virtual bool is_execution_needed(EventType t)
     {
         switch (t)
@@ -70,6 +73,18 @@ class AbstractExecutor: public IObserver
             throw std::runtime_error("Unexpected event type");
         }
         return false;
+    }
+
+    BatchType prepare_batch()
+    {
+        BatchType res;
+        res.reserve(m_block_sz);
+        while(!m_commands.empty())
+        {
+            res.emplace_back(std::move(m_commands.front()));
+            m_commands.pop();
+        }
+        return res;
     }
 
     std::string m_name;
@@ -96,17 +111,12 @@ class OstreamWriter: public AbstractExecutor
 
     private:
 
-    void execute() override
+    void execute(AbstractExecutor::BatchType const& batch) override
     {
-        if(m_commands.empty())
-        {
-            return;
-        }
         m_out << "bulk:";
-        while(!m_commands.empty())
+        for(auto const& c: batch)
         {
-            m_out << " " << m_commands.front();
-            m_commands.pop();
+            m_out << " " << c;
         }
         m_out << std::endl;
     }
@@ -135,22 +145,16 @@ class FilesWriter: public AbstractExecutor
     FilesWriter(std::string const& name, size_t block_sz, AbstractExecutor::TimingFn tm): AbstractExecutor(name, block_sz, tm) {}
 
 
-    void execute() override
+    void execute(AbstractExecutor::BatchType const& batch) override
     {
         m_out.open(make_log_file_name());
-        if(m_commands.empty())
-        {
-            return;
-        }
         m_out << "bulk:";
-        while(!m_commands.empty())
+        for(auto const& c: batch)
         {
-            m_out << " " << m_commands.front();
-            m_commands.pop();
+            m_out << " " << c;
         }
         m_out << std::endl;
         m_out.close();
-        std::cerr << "Log written to " << make_log_file_name() << std::endl;
     }
     
     std::string make_log_file_name() const
