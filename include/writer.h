@@ -51,7 +51,9 @@ class AbstractExecutor: public IObserver
             m_block_start_tm = 0;
         }
     }
+
     protected:
+
     virtual void execute(BatchType const& batch) = 0;
     virtual bool is_execution_needed(EventType t)
     {
@@ -98,15 +100,13 @@ class AbstractExecutor: public IObserver
 class OstreamWriter: public AbstractExecutor 
 {
     public:
+
     static std::shared_ptr<OstreamWriter> create_subscriber(std::string const& name, std::ostream& out, size_t block_sz, OTUS::CommandReader& reader)
     {
         auto ptr = std::make_shared<OstreamWriter>(name, out, block_sz);
         reader.subscribe(ptr);
         return ptr;
     }
-    OstreamWriter() = delete;
-    OstreamWriter(OstreamWriter const&) = delete;
-    OstreamWriter& operator=(OstreamWriter const&) = delete;
     OstreamWriter(std::string const& name, std::ostream& out, size_t block_sz): AbstractExecutor(name, block_sz), m_out(out) {}
 
     private:
@@ -128,15 +128,13 @@ class OstreamWriter: public AbstractExecutor
 class FilesWriter: public AbstractExecutor
 {
     public:
+
     static std::shared_ptr<FilesWriter> create_subscriber(std::string const& name, size_t block_sz, OTUS::CommandReader& reader)
     {
         auto ptr = std::make_shared<FilesWriter>(name, block_sz);
         reader.subscribe(ptr);
         return ptr;
     }
-    FilesWriter() = delete;
-    FilesWriter(FilesWriter const&) = delete;
-    FilesWriter& operator=(FilesWriter const&) = delete;
     FilesWriter(std::string const& name, size_t block_sz): AbstractExecutor(name, block_sz) {}
     /**
      * This constructor is used primarilly for testing purposes in order to obtain reproducible
@@ -144,6 +142,13 @@ class FilesWriter: public AbstractExecutor
      */
     FilesWriter(std::string const& name, size_t block_sz, AbstractExecutor::TimingFn tm): AbstractExecutor(name, block_sz, tm) {}
 
+
+    std::string make_log_file_name() const
+    {
+        return "bulk" + std::to_string(m_block_start_tm) + ".log";
+    }
+
+    private:
 
     void execute(AbstractExecutor::BatchType const& batch) override
     {
@@ -157,11 +162,6 @@ class FilesWriter: public AbstractExecutor
         m_out.close();
     }
     
-    std::string make_log_file_name() const
-    {
-        return "bulk" + std::to_string(m_block_start_tm) + ".log";
-    }
-    private:
     std::ofstream m_out;
 };
 
