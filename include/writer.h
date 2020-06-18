@@ -97,7 +97,7 @@ class AbstractExecutor: public IObserver
     TimingFn m_timing;
 };
 
-class OstreamWriter: public AbstractExecutor 
+class OstreamWriter final: public AbstractExecutor 
 {
     public:
 
@@ -125,7 +125,7 @@ class OstreamWriter: public AbstractExecutor
     std::ostream& m_out;
 };
 
-class FilesWriter: public AbstractExecutor
+class FilesWriter final: public AbstractExecutor
 {
     public:
 
